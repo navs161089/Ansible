@@ -1,0 +1,8 @@
+---
+ec2_access_id: "XXXXXXXXXXXXXXXX"
+ec2_access_key: "XXXXXXXXXXXXXX"
+ec2_grp: "sg-00a82198c1d709dce"
+insta_type: "t2.micro"
+ami_id: "ami-07d0cf3af28718ef8" 
+key_pair: "<key_name>"
+ec2_region: "us-east-1"
