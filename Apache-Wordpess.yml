@@ -1,0 +1,104 @@
+## Playbook to Configure WordPress with Custom template ###
+===========
+---
+- name: Deploy Webserver
+  hosts: webservers
+  remote_user: ec2_user
+  become: yes
+  gather_facts: False
+  pre_tasks:
+   - include_vars: variables.yml
+  tasks:
+   - name: Installing Apache
+     yum:
+       name:
+       - httpd
+       - httpd-devel
+       state: latest
+
+   - name: Installing MariaDB
+     yum:
+       name:
+       - mariadb-server
+       - mariadb-devel
+       - php
+       - php-mysql
+       - MySQL-python
+       state: latest
+   
+   - name: Apache Create custom Index.html
+     copy:
+       content: "<h1>This is a test page created by Naveen!</h1>"
+       dest: /var/www/html/index.html
+   
+   - name: Start MariaDB
+     service:
+       name: mariadb
+       state: started
+
+   - name: Change MariaDB password
+     mysql_user:
+       login_user: root
+       login_password: "{{mysql_root}}"
+       name: root
+       password: "{{mysql_root}}"
+       host_all: true
+   
+   - name: Create Database for WordPress
+     mysql_db:
+       login_user: root
+       login_password: "{{mysql_root}}"
+       name: "{{mysql_database}}"
+       state: present
+
+   - name: DB user creation and privileges
+     mysql_user:
+       login_user: root
+       login_password: "{{mysql_root}}"
+       name: "{{mysql_user}}"
+       password: "{{mysql_password}}"
+       state: present
+       host: localhost
+       priv: "{{mysql_database}}.*:ALL"
+
+   - name: Creating DocumentRoot
+     file:
+       path: /var/www/html/{{domain}}
+       state: directory
+       owner: apache
+       group: apache
+
+   - name: Wordpress Download
+     get_url:
+       url: https://wordpress.org/wordpress-5.0.6.tar.gz
+       dest: /usr/local/src/wordpress.tar.gz
+
+   - name: Contents extraction  
+     unarchive:
+       src: /usr/local/src/wordpress.tar.gz
+       dest: /usr/local/src/
+       remote_src: yes
+
+   - name: Copying contents to DocumentRoot
+     shell: "cp -r /usr/local/src/wordpress/* /var/www/html/{{domain}}"
+
+   - name: Adding custom WP Configuration
+     template:
+       src: wp-config.php.tmpl
+       dest: /var/www/html/{{ domain }}/wp-config.php
+
+   - name: Adding Custom VirtualHost Configuration
+     template:
+       src: virtualhost.j2
+       dest: /etc/httpd/conf.d/{{domain}}.conf 
+
+   - name: Assign permissions
+     shell: 'chown -R apache:apache /var/www/html/{{domain}}'
+
+   - name: "Restarting all Dependent Daemons"
+     service:
+       name: "{{ item }}"
+       state: started
+     with_items:
+       - httpd
+       - mariadb
