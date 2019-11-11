@@ -1,0 +1,27 @@
+Apache-roles]# tree
+.
+|-- defaults
+|   `-- main.yml
+|-- files
+|   `-- info.php
+|-- handlers
+|   `-- main.yml
+|-- meta
+|   `-- main.yml
+|-- README.md
+|-- tasks
+|   |-- configure.yml
+|   |-- docroot.yml
+|   |-- info.yml
+|   |-- install.yml
+|   |-- main.yml
+|   `-- services.yml
+|-- templates
+|   `-- virtualhost.j1
+|-- tests
+|   |-- inventory
+|   `-- test.yml
+`-- vars
+    `-- main.yml
+
+8 directories, 15 files
