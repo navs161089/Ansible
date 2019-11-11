@@ -1,4 +1,4 @@
-#site.yml
+#site.yml //playbook which calls defined roles
 ---
 - hosts: server1
   remote_user: ec2_user
@@ -6,9 +6,11 @@
   gather_facts: False
   roles:
   - Apache-roles
+  
+  
   ==============
   
-  #install.yml
+  #install.yml // task to install applications
   ---
 - name: Install Apache Webserver
   yum:
@@ -19,7 +21,7 @@
 
 =================
 
-#docroot.yml
+#docroot.yml // Configure custome DocumentRoot for domain
 ---
 - name: Configure DocumentRoot
   file:
@@ -29,7 +31,7 @@
      group: apache
 ====================
 
-#info.yml
+#info.yml // Create a custom info.php
 
 ---
  - name: Adding phpinfo page
@@ -39,7 +41,7 @@
      
 =======================
 
-#configure.yml
+#configure.yml // Create custom VirtualHost entry using template
 
 ---
 - name: Configure Apache VirtualHost
@@ -51,7 +53,7 @@
    
 ======================
 
-#services.yml
+#services.yml // Restart and enable dependent services
 
 ---
 - name: Restart Apache Webserver
@@ -62,7 +64,7 @@
      
 ======================
 
-#main.yml
+#main.yml // main task yaml file to import all the above predefined tasks
 
 ---
 # tasks file for /home/ansible/Apache-roles/
@@ -71,3 +73,16 @@
 - import_tasks: configure.yml
 - import_tasks: info.yml
 - import_tasks: services.yml
+
+==================
+
+# virtualhost.j1 // template file for he virtualhost
+
+<VirtualHost *:80>
+  ServerName {{ domain }}
+  DocumentRoot /var/www/html/{{domain}}
+  DirectoryIndex index.php index.html info.html info.php
+</VirtualHost>
+
+==================
+
