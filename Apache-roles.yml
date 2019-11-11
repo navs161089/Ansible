@@ -1,0 +1,73 @@
+#site.yml
+---
+- hosts: server1
+  remote_user: ec2_user
+  become: yes
+  gather_facts: False
+  roles:
+  - Apache-roles
+  ==============
+  
+  #install.yml
+  ---
+- name: Install Apache Webserver
+  yum:
+   name: 
+   - httpd
+   - php
+   state: latest
+
+=================
+
+#docroot.yml
+---
+- name: Configure DocumentRoot
+  file:
+     path: /var/www/html/{{domain}}
+     state: directory
+     owner: apache
+     group: apache
+====================
+
+#info.yml
+
+---
+ - name: Adding phpinfo page
+   copy: 
+     src: files/info.php
+     dest: /var/www/html/{{domain}}
+     
+=======================
+
+#configure.yml
+
+---
+- name: Configure Apache VirtualHost
+  template:
+     src: virtualhost.j1
+     dest: /etc/httpd/conf.d/{{domain}}.conf
+  notify:
+   - Restart Apache Webserver
+   
+======================
+
+#services.yml
+
+---
+- name: Restart Apache Webserver
+  service:
+     name: httpd
+     state: started
+     enabled: yes
+     
+======================
+
+#main.yml
+
+---
+# tasks file for /home/ansible/Apache-roles/
+- import_tasks: install.yml
+- import_tasks: docroot.yml
+- import_tasks: configure.yml
+- import_tasks: info.yml
+- import_tasks: services.yml
